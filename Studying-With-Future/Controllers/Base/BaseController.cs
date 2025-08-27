@@ -68,7 +68,7 @@ namespace Studying_With_Future.Controllers.Base
 
             _dbSet.Remove(entidade);
             await _context.SaveChangesAsync();
-            return NoContent();
+            return Ok();
         }
 
          private int GetEntityId(T entity)

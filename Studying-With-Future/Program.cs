@@ -14,9 +14,22 @@ internal class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
+        // Primeiro tenta pegar da variável de ambiente, depois do appsettings.json
+        var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") 
+                            ?? builder.Configuration.GetConnectionString("AppDbConnectionString");
 
-        var connectionString = builder.Configuration.GetConnectionString("AppDbConnectionString");
-        builder.Services.AddDbContext<AppDbContext>(options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+        // Verifica se a connection string está configurada
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new Exception("❌ Connection string não configurada. " +
+                            "Configure a variável de ambiente DB_CONNECTION_STRING");
+        }
+
+        Console.WriteLine($"✅ Connection String: {connectionString}");
+
+        // Configura o DbContext
+        builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
         var app = builder.Build();
 
