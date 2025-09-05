@@ -12,7 +12,7 @@ using Studying_With_Future.DTOs.Usuarios;
 namespace Studying_With_Future.Controllers.Usuarios
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/usuarios")]
     public class UsuariosController : ControllerBase
     {
         protected readonly AppDbContext _context;
@@ -23,7 +23,7 @@ namespace Studying_With_Future.Controllers.Usuarios
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UsuarioDTO.UsuarioResponseDTO>>> GetUsuarios(
+        public async Task<ActionResult<IEnumerable<UsuarioResponseDTO>>> GetUsuarios(
             [FromQuery] string tipo = null, 
             [FromQuery] string search = null)
         {
@@ -40,7 +40,7 @@ namespace Studying_With_Future.Controllers.Usuarios
             }
 
             var usuarios = await query
-                .Select(u => new UsuarioDTO.UsuarioResponseDTO
+                .Select(u => new UsuarioResponseDTO
                 {
                     Id = u.Id,
                     Nome = u.Nome,
@@ -55,7 +55,7 @@ namespace Studying_With_Future.Controllers.Usuarios
 
         // GET: api/usuarios/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<UsuarioDTO.UsuarioDetailResponseDTO>> GetUsuario(int id)
+        public async Task<ActionResult<UsuarioDetailResponseDTO>> GetUsuario(int id)
         {
             var usuario = await _context.Usuarios
                 .Include(u => u.UsuarioTelas)
@@ -66,7 +66,7 @@ namespace Studying_With_Future.Controllers.Usuarios
                 return NotFound();
             }
 
-            var response = new UsuarioDTO.UsuarioDetailResponseDTO
+            var response = new UsuarioDetailResponseDTO
             {
                 Id = usuario.Id,
                 Nome = usuario.Nome,

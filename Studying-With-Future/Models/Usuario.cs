@@ -26,6 +26,10 @@ namespace Studying_With_Future.Models
 
         public virtual List<UsuarioTela> UsuarioTelas { get; set; } = new List<UsuarioTela>();
 
+         public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
+        public bool Ativo { get; set; } = true;
+
+
         public virtual string ObterTipoUsuario()
         {
             return this.GetType().Name;

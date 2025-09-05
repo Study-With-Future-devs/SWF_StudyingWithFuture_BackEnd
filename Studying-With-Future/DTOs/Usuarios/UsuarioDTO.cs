@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 namespace Studying_With_Future.DTOs.Usuarios
 {
-    public class UsuarioDTO
-    {
         public class UsuarioCreateDTO
         {
             [Required]
@@ -40,6 +38,4 @@ namespace Studying_With_Future.DTOs.Usuarios
             public bool Ativo { get; set; } = true;
             public List<int> TelasPermitidasIds { get; set; } = new List<int>();
         }
-
-    }
 }
