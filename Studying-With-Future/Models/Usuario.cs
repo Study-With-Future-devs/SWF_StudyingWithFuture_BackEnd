@@ -26,6 +26,9 @@ namespace Studying_With_Future.Models
 
         public virtual List<UsuarioTela> UsuarioTelas { get; set; } = new List<UsuarioTela>();
 
+         public string RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiry { get; set; }
+
          public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
         public bool Ativo { get; set; } = true;
 
