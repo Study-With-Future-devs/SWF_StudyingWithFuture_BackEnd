@@ -12,10 +12,10 @@ namespace Studying_With_Future.Data
         public AppDbContext CreateDbContext(string[] args)
         {
             // Lê direto da variável de ambiente
-            var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING_GESTAO_EVENTO");
+            var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
 
             if (string.IsNullOrEmpty(connectionString))
-                throw new InvalidOperationException("⚠️ A variável de ambiente 'DB_CONNECTION_STRING_GESTAO_EVENTO' não foi definida!");
+                throw new InvalidOperationException("⚠️ A variável de ambiente 'DB_CONNECTION_STRING' não foi definida!");
 
             Console.WriteLine($"[DEBUG] Connection string usada pelo EF: {connectionString}");
 

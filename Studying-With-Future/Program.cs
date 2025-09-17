@@ -23,15 +23,6 @@ internal class Program
 
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen(c =>
-        {
-            c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
-            {
-                Title = "Sistema Escolar API",
-                Version = "v1",
-                Description = "API para gestão escolar com .NET 9 + Angular"
-            });
-        });
 
         // Primeiro tenta pegar da variável de ambiente, depois do appsettings.json
         var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
@@ -84,8 +75,8 @@ internal class Program
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = jwtSettings["Issuer"] ?? "GestaoEventosAPI",
-                ValidAudience = jwtSettings["Audience"] ?? "GestaoEventosClient",
+                ValidIssuer = jwtSettings["Issuer"] ?? "SWF_API",
+                ValidAudience = jwtSettings["Audience"] ?? "SWF_Client",
                 IssuerSigningKey = new SymmetricSecurityKey(key),
                 ClockSkew = TimeSpan.Zero // Remove tolerância de tempo
             };
@@ -138,11 +129,11 @@ internal class Program
         // Configurar Swagger com suporte a JWT
         builder.Services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1", new OpenApiInfo
+            c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
             {
-                Title = "Study-With-Future API",
+                Title = "Sistema Escolar API",
                 Version = "v1",
-                Description = "API com autenticação JWT"
+                Description = "API para gestão escolar com .NET 9 + Angular"
             });
 
             // Adicionar suporte a JWT no Swagger
