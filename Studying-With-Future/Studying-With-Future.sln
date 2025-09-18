@@ -1,25 +1,32 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Studing-With-Future", "Studing-With-Future.csproj", "{A18503DA-414D-44CC-77BC-B00A16677C13}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Studying-With-Future", "Studying-With-Future.csproj", "{88A6EAFD-46D2-4EFF-8502-342763965318}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A18503DA-414D-44CC-77BC-B00A16677C13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A18503DA-414D-44CC-77BC-B00A16677C13}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A18503DA-414D-44CC-77BC-B00A16677C13}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A18503DA-414D-44CC-77BC-B00A16677C13}.Release|Any CPU.Build.0 = Release|Any CPU
 		{88A6EAFD-46D2-4EFF-8502-342763965318}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{88A6EAFD-46D2-4EFF-8502-342763965318}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88A6EAFD-46D2-4EFF-8502-342763965318}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{88A6EAFD-46D2-4EFF-8502-342763965318}.Debug|x64.Build.0 = Debug|Any CPU
+		{88A6EAFD-46D2-4EFF-8502-342763965318}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{88A6EAFD-46D2-4EFF-8502-342763965318}.Debug|x86.Build.0 = Debug|Any CPU
 		{88A6EAFD-46D2-4EFF-8502-342763965318}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{88A6EAFD-46D2-4EFF-8502-342763965318}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88A6EAFD-46D2-4EFF-8502-342763965318}.Release|x64.ActiveCfg = Release|Any CPU
+		{88A6EAFD-46D2-4EFF-8502-342763965318}.Release|x64.Build.0 = Release|Any CPU
+		{88A6EAFD-46D2-4EFF-8502-342763965318}.Release|x86.ActiveCfg = Release|Any CPU
+		{88A6EAFD-46D2-4EFF-8502-342763965318}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
