@@ -6,6 +6,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text.Json;
 
 internal class Program
 {
@@ -15,11 +16,25 @@ internal class Program
 
         // Add services to the container.
         builder.Services.AddControllers()
-            .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-                options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-            });
+     .AddJsonOptions(options =>
+     {
+         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+     });
+
+        // Configurar CORS primeiro
+        builder.Services.AddCors(options =>
+ {
+     options.AddPolicy("AllowAngularDev",
+         policy =>
+         {
+             policy.WithOrigins("http://localhost:4200", "https://localhost:4200") // http e https
+                   .AllowAnyHeader()
+                   .AllowAnyMethod()
+                   .AllowCredentials();
+         });
+ });
 
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddEndpointsApiExplorer();
@@ -116,20 +131,12 @@ internal class Program
 
             options.AddPolicy("AnyAuthenticated", policy =>
                 policy.RequireAuthenticatedUser());
-
-            // Política específica para acesso a telas
-            options.AddPolicy("TelaAccess", policy =>
-                policy.RequireAssertion(context =>
-                {
-                    // Esta política será verificada manualmente no middleware
-                    return true;
-                }));
         });
 
         // Configurar Swagger com suporte a JWT
         builder.Services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+            c.SwaggerDoc("v1", new OpenApiInfo
             {
                 Title = "Sistema Escolar API",
                 Version = "v1",
@@ -160,7 +167,7 @@ internal class Program
                     new string[] {}
                 }
             });
-        }); // FIM AddSwaggerGen
+        });
 
         var app = builder.Build();
 
@@ -171,19 +178,17 @@ internal class Program
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Sistema Escolar API v1");
-                c.RoutePrefix = string.Empty; // Coloca Swagger na raiz (http://localhost:5201)
+                c.RoutePrefix = string.Empty; // Coloca Swagger na raiz
             });
-            
-            using (var scope = app.Services.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                dbContext.Database.Migrate();
-            }
         }
 
+        // IMPORTANTE: UseCors deve vir antes de UseAuthentication e UseAuthorization
+        app.UseCors("AllowAngularDev");
+
         app.UseHttpsRedirection();
-        app.UseAuthentication(); // Added missing authentication middleware
+        app.UseAuthentication();
         app.UseAuthorization();
+
         app.MapControllers();
 
         // Rota de health check
@@ -204,7 +209,7 @@ internal class Program
         });
 
         Console.WriteLine("🚀 API Iniciando...");
-        Console.WriteLine($"📊 Swagger: http://localhost:5201");
+        Console.WriteLine($"📊 Swagger: https://localhost:5201");
         Console.WriteLine($"🔧 Ambiente: {app.Environment.EnvironmentName}");
 
         app.Run();

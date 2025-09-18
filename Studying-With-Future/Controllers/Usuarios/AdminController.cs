@@ -6,6 +6,7 @@ using Studying_With_Future.Models;
 
 namespace Studying_With_Future.Controllers.Usuarios
 {
+    
     [ApiController]
     [Route("api/[controller]")]
     public class AdminsController : ControllerBase
