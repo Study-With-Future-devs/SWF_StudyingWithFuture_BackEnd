@@ -2,11 +2,12 @@
 # Run-SQL.ps1 - Executa scripts SQL via Docker
 # ---------------------------------------------
 
-Param(
-    [string]$ScriptFile
-)
-
-# Caminho absoluto do script
+# Configurações do banco
+$containerName = "mysql_db"   # nome do container, ajuste se necessário
+$dbName = "swf"               # nome do banco
+$user = "root"                # usuário do MySQL
+$password = ""          # senha do usuário root (ajuste conforme seu container)
+# Caminho do projeto (pasta raiz)
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 # Caminho do JSON de scripts
@@ -20,39 +21,29 @@ if (-Not (Test-Path $scriptsJsonPath)) {
 # Lê o JSON
 $scripts = Get-Content $scriptsJsonPath | ConvertFrom-Json
 
-# Se não passou argumento, pede pra escolher
-if (-not $ScriptFile) {
-    Write-Host "Escolha um script para rodar:"
-    for ($i = 0; $i -lt $scripts.scripts.Count; $i++) {
-        Write-Host "$i) $($scripts.scripts[$i].name)"
-    }
-
-    $choice = Read-Host "Digite o número"
-    if (-Not ($choice -match '^\d+$') -or $choice -ge $scripts.scripts.Count) {
-        Write-Host "❌ Opção inválida!"
-        exit 1
-    }
-
-    $FileName = $scripts.scripts[$choice].file
-    $ScriptFile = Join-Path $projectRoot "SQL\$FileName"
-} else {
-    # Caso tenha passado o caminho
-    $ScriptFile = $ScriptFile -replace '/', '\'
+# Menu interativo
+Write-Host "Escolha um script para rodar:"
+for ($i = 0; $i -lt $scripts.scripts.Count; $i++) {
+    Write-Host "$i) $($scripts.scripts[$i].name)"
 }
 
-# Verifica se o arquivo SQL existe
-if (-Not (Test-Path $ScriptFile)) {
-    Write-Host "❌ Arquivo SQL não encontrado: $ScriptFile"
+$choice = Read-Host "Digite o número"
+if (-Not ($choice -match '^\d+$') -or $choice -ge $scripts.scripts.Count) {
+    Write-Host "❌ Opção inválida!"
     exit 1
 }
 
-# Configurações do banco
-$containerName = "mysql_db"   # nome do container
-$dbName = "swf"               # nome do banco
-$user = "root"                # usuário do MySQL
-$password = ""                # senha do usuário root (ajuste conforme seu container)
+$FileName = $scripts.scripts[$choice].file
 
-# Executa o SQL no container Docker usando pipe
-Write-Host "🚀 Executando $ScriptFile no banco $dbName..."
-Get-Content $ScriptFile | docker exec -i $containerName mysql -u $user $dbName
+# Caminho do arquivo SQL
+$sqlPath = Join-Path $projectRoot "SQL\$FileName"
+if (-Not (Test-Path $sqlPath)) {
+    Write-Host "❌ Arquivo SQL não encontrado: $sqlPath"
+    exit 1
+}
+
+# Executa o SQL no container Docker
+Write-Host "🚀 Executando $FileName no banco $dbName..."
+Get-Content $sqlPath | docker exec -i $containerName mysql -u $user $dbName
+
 Write-Host "✅ Script executado com sucesso!"
