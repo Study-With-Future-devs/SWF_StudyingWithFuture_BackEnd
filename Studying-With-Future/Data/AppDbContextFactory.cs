@@ -1,28 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Studying_With_Future.Data;
 
-namespace Studying_With_Future.Data
+public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
-    public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
+    public AppDbContext CreateDbContext(string[] args)
     {
-        public AppDbContext CreateDbContext(string[] args)
-        {
-            // Lê direto da variável de ambiente
-            var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+        var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
 
-            if (string.IsNullOrEmpty(connectionString))
-                throw new InvalidOperationException("⚠️ A variável de ambiente 'DB_CONNECTION_STRING' não foi definida!");
+        // Pega a connection string da variável de ambiente
+        var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
+                               ?? "server=mysql_db;database=swf;user=swf_user;password=swf_password;";
 
-            Console.WriteLine($"[DEBUG] Connection string usada pelo EF: {connectionString}");
+        optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 
-            var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-            optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-
-            return new AppDbContext(optionsBuilder.Options);
-        }
+        return new AppDbContext(optionsBuilder.Options);
     }
 }

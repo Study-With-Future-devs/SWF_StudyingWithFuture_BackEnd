@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   db:
     image: mysql:8.0
@@ -8,12 +10,29 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ""
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: swf
+      MYSQL_USER: swf_user
+      MYSQL_PASSWORD: swf_password
     volumes:
       - mysql-data:/var/lib/mysql
     command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      retries: 10
+      timeout: 5s
+
+  api:
+    build: .
+    container_name: swf_api
+    restart: always
+    ports:
+      - "5201:5201"
+    depends_on:
+      - db
+    environment:
+      DB_CONNECTION_STRING: "server=mysql_db;database=swf;user=swf_user;password=swf_password;"
+    command: ["pwsh", "-File", "./wait-for-mysql.ps1"]
 
 volumes:
   mysql-data:

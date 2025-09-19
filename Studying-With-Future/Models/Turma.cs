@@ -1,8 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations.Schema;
+using Studying_With_Future.Models;
+
 
 namespace Studying_With_Future.Models
 {
@@ -24,7 +23,12 @@ namespace Studying_With_Future.Models
         public int? ProfessorId { get; set; }
         public Professor Professor { get; set; }
 
-        public List<Aluno> Alunos { get; set; } = new List<Aluno>();
+        // Relacionamento Many-to-Many com Alunos via AlunoTurma
+        public List<AlunoTurma> AlunoTurmas { get; set; } = new List<AlunoTurma>();
+
+        [NotMapped]
+        public IEnumerable<Aluno> Alunos => AlunoTurmas.Select(at => at.Aluno);
+
         public List<Atividade> Atividades { get; set; } = new List<Atividade>();
     }
 }

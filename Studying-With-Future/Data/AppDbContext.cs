@@ -22,6 +22,8 @@ namespace Studying_With_Future.Data
         public DbSet<Atividade> Atividades { get; set; }
         public DbSet<Nota> Notas { get; set; }
 
+        public DbSet<AlunoTurma> AlunoTurmas { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -143,6 +145,19 @@ namespace Studying_With_Future.Data
                 entity.Property(t => t.Nome).HasMaxLength(50).IsRequired();
                 entity.Property(t => t.Descricao).HasMaxLength(200);
             });
+
+            modelBuilder.Entity<AlunoTurma>()
+       .HasKey(at => new { at.AlunoId, at.TurmaId });
+
+            modelBuilder.Entity<AlunoTurma>()
+                .HasOne(at => at.Aluno)
+                .WithMany(a => a.AlunoTurmas)
+                .HasForeignKey(at => at.AlunoId);
+
+            modelBuilder.Entity<AlunoTurma>()
+                .HasOne(at => at.Turma)
+                .WithMany(t => t.AlunoTurmas)
+                .HasForeignKey(at => at.TurmaId);
         }
     }
 }
