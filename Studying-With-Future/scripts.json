@@ -1,0 +1,8 @@
+{
+  "scripts": [
+    {
+      "name": "Listar Tabelas",
+      "file": "SHOW_TABLES.sql"
+    }
+  ]
+}
