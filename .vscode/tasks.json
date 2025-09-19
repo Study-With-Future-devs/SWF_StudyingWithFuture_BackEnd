@@ -7,6 +7,20 @@
             "label": "dotnet-build",
             "group": "build",
             "problemMatcher": []
+        },
+        {
+            "label": "Rodar SQL Script",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}/Studying-With-Future/Run-SQL.ps1"
+            ],
+            "group": "none",
+            "problemMatcher": []
         }
     ]
 }
