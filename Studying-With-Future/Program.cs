@@ -25,16 +25,16 @@ internal class Program
 
         // Configurar CORS primeiro
         builder.Services.AddCors(options =>
- {
-     options.AddPolicy("AllowAngularDev",
-         policy =>
-         {
-             policy.WithOrigins("http://localhost:4200", "https://localhost:4200") // http e https
-                   .AllowAnyHeader()
-                   .AllowAnyMethod()
-                   .AllowCredentials();
-         });
- });
+        {
+            options.AddPolicy("AllowAngularDev",
+                policy =>
+                {
+                    policy.WithOrigins("http://localhost:4200", "https://localhost:4200") // http e https
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
+                });
+        });
 
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddEndpointsApiExplorer();
@@ -48,7 +48,7 @@ internal class Program
             // Em desenvolvimento, usa uma string local para testes
             if (builder.Environment.IsDevelopment())
             {
-                connectionString = "server=localhost;database=swf;user=root;password=positivo;";
+                connectionString = "server=localhost;database=swf;user=root;password=;";
                 Console.WriteLine("⚠️  Usando connection string de desenvolvimento");
             }
             else
@@ -170,6 +170,21 @@ internal class Program
         });
 
         var app = builder.Build();
+
+        // ✅ Código de migrations NO LUGAR CORRETO (após app.Build() e antes de app.Run())
+        using (var scope = app.Services.CreateScope())
+        {
+            try
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                dbContext.Database.Migrate();
+                Console.WriteLine("✅ Migrations aplicadas com sucesso");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Erro ao aplicar migrations: {ex.Message}");
+            }
+        }
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
