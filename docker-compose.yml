@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: swf_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootroot
+      MYSQL_DATABASE: swf
+      MYSQL_USER: user_swf
+      MYSQL_PASSWORD: swf123
+    ports:
+      - "3305:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  api:
+    build: .
+    container_name: swf_api
+    restart: always
+    ports:
+      - "5004:5004"
+    environment:
+      - ConnectionStrings__DefaultConnection=server=db;port=3306;database=swf;user=user_swf;password=swf123
+      - DOTNET_ENVIRONMENT=Development
+    depends_on:
+      - db
+
+volumes:
+  db_data:

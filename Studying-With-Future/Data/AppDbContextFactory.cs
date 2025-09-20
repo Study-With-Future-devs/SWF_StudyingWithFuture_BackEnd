@@ -9,8 +9,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
 
         // Pega a connection string da variável de ambiente
-        var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
-                               ?? "server=mysql_db;database=swf;user=swf_user;password=swf_password;";
+        var connectionString = "server=db;port=3306;database=swf;user=user_swf;password=swf123";
 
         optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 

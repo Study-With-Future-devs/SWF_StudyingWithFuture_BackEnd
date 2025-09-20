@@ -16,12 +16,12 @@ internal class Program
 
         // Add services to the container.
         builder.Services.AddControllers()
-     .AddJsonOptions(options =>
-     {
-         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-     });
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+            });
 
         // Configurar CORS primeiro
         builder.Services.AddCors(options =>
@@ -39,31 +39,14 @@ internal class Program
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddEndpointsApiExplorer();
 
-        // Primeiro tenta pegar da variável de ambiente, depois do appsettings.json
-        var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
-                              ?? builder.Configuration.GetConnectionString("AppDbConnectionString");
+        // Connection string (aqui já está fixada para o container)
+        var connectionString = "server=db;port=3306;database=swf;user=user_swf;password=swf123";
 
-        if (string.IsNullOrEmpty(connectionString))
-        {
-            // Em desenvolvimento, usa uma string local para testes
-            if (builder.Environment.IsDevelopment())
-            {
-                connectionString = "server=localhost;database=swf;user=root;password=;";
-                Console.WriteLine("⚠️  Usando connection string de desenvolvimento");
-            }
-            else
-            {
-                throw new Exception("❌ Connection string não configurada. " +
-                                  "Configure a variável de ambiente DB_CONNECTION_STRING");
-            }
-        }
+        Console.WriteLine($"🔍 Tentando conectar com: {connectionString}");
 
-        Console.WriteLine($"✅ Connection String: {connectionString}");
-
-        // Configura o DbContext
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
-                   .LogTo(Console.WriteLine, LogLevel.Information) // Log das queries SQL
+                   .LogTo(Console.WriteLine, LogLevel.Information)
                    .EnableSensitiveDataLogging(builder.Environment.IsDevelopment()));
 
         //INICIO LOGICA DE JWT
@@ -83,7 +66,7 @@ internal class Program
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         })
         .AddJwtBearer(options =>
-        {
+        {   
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
@@ -93,7 +76,7 @@ internal class Program
                 ValidIssuer = jwtSettings["Issuer"] ?? "SWF_API",
                 ValidAudience = jwtSettings["Audience"] ?? "SWF_Client",
                 IssuerSigningKey = new SymmetricSecurityKey(key),
-                ClockSkew = TimeSpan.Zero // Remove tolerância de tempo
+                ClockSkew = TimeSpan.Zero
             };
 
             options.Events = new JwtBearerEvents
@@ -111,29 +94,16 @@ internal class Program
             };
         });
 
-        // Configurar políticas de autorização
         builder.Services.AddAuthorization(options =>
         {
-            options.AddPolicy("Admin", policy =>
-                policy.RequireRole("Admin"));
-
-            options.AddPolicy("Coordenador", policy =>
-                policy.RequireRole("Coordenador", "Admin"));
-
-            options.AddPolicy("Professor", policy =>
-                policy.RequireRole("Professor", "Coordenador", "Admin"));
-
-            options.AddPolicy("Aluno", policy =>
-                policy.RequireRole("Aluno", "Professor", "Coordenador", "Admin"));
-
-            options.AddPolicy("Usuário", policy =>
-                policy.RequireRole("Usuário", "Aluno", "Professor", "Coordenador", "Admin"));
-
-            options.AddPolicy("AnyAuthenticated", policy =>
-                policy.RequireAuthenticatedUser());
+            options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+            options.AddPolicy("Coordenador", policy => policy.RequireRole("Coordenador", "Admin"));
+            options.AddPolicy("Professor", policy => policy.RequireRole("Professor", "Coordenador", "Admin"));
+            options.AddPolicy("Aluno", policy => policy.RequireRole("Aluno", "Professor", "Coordenador", "Admin"));
+            options.AddPolicy("Usuário", policy => policy.RequireRole("Usuário", "Aluno", "Professor", "Coordenador", "Admin"));
+            options.AddPolicy("AnyAuthenticated", policy => policy.RequireAuthenticatedUser());
         });
 
-        // Configurar Swagger com suporte a JWT
         builder.Services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo
@@ -143,7 +113,6 @@ internal class Program
                 Description = "API para gestão escolar com .NET 9 + Angular"
             });
 
-            // Adicionar suporte a JWT no Swagger
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header usando o esquema Bearer. Exemplo: \"Authorization: Bearer {token}\"",
@@ -171,20 +140,6 @@ internal class Program
 
         var app = builder.Build();
 
-        // ✅ Código de migrations NO LUGAR CORRETO (após app.Build() e antes de app.Run())
-        using (var scope = app.Services.CreateScope())
-        {
-            try
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                dbContext.Database.Migrate();
-                Console.WriteLine("✅ Migrations aplicadas com sucesso");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Erro ao aplicar migrations: {ex.Message}");
-            }
-        }
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
@@ -200,7 +155,8 @@ internal class Program
         // IMPORTANTE: UseCors deve vir antes de UseAuthentication e UseAuthorization
         app.UseCors("AllowAngularDev");
 
-        app.UseHttpsRedirection();
+        //app.UseHttpsRedirection(); // comentado porque Docker não tem HTTPS
+
         app.UseAuthentication();
         app.UseAuthorization();
 
@@ -212,7 +168,6 @@ internal class Program
         // Middleware de tratamento de erros global
         app.UseExceptionHandler("/error");
 
-        // Rota para debug de erros
         app.Map("/error", (HttpContext context) =>
         {
             var exception = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
@@ -223,8 +178,11 @@ internal class Program
             );
         });
 
+        // 🚀 Forçar a API a escutar na porta 5004
+        app.Urls.Add("http://*:5004");
+
         Console.WriteLine("🚀 API Iniciando...");
-        Console.WriteLine($"📊 Swagger: https://localhost:5201");
+        Console.WriteLine($"📊 Swagger: http://localhost:5004");
         Console.WriteLine($"🔧 Ambiente: {app.Environment.EnvironmentName}");
 
         app.Run();
