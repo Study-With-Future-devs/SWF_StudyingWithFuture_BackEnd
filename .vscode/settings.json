@@ -1,0 +1,74 @@
+{
+  "workbench.colorCustomizations": {
+    // 🖥️ Barra de título (topo da janela)
+    "titleBar.activeBackground": "#1e3a8a",      // Fundo quando a janela está ativa
+    "titleBar.activeForeground": "#ffffff",      // Texto quando ativa
+    "titleBar.inactiveBackground": "#374151",    // Fundo quando inativa
+    "titleBar.inactiveForeground": "#9ca3af",    // Texto quando inativa
+    "titleBar.border": "#000000",                // Borda inferior da barra de título
+
+    // 📦 Barra lateral (onde ficam Explorer, Git, etc)
+    "sideBar.background": "#111827",             // Fundo da sidebar
+    "sideBar.foreground": "#e5e7eb",             // Texto padrão
+    "sideBar.border": "#1f2937",                 // Borda direita
+    "sideBarTitle.foreground": "#93c5fd",        // Título (ex: "EXPLORER")
+    "sideBarSectionHeader.background": "#1f2937",// Fundo dos cabeçalhos
+    "sideBarSectionHeader.foreground": "#ffffff",// Texto dos cabeçalhos
+
+    // 🎛️ Barra de atividade (a coluna com ícones à esquerda)
+    "activityBar.background": "#2563eb",         // Fundo da barra de ícones
+    "activityBar.foreground": "#ffffff",         // Ícones padrão
+    "activityBar.border": "#1f2937",             // Borda direita
+    "activityBarBadge.background": "#f59e0b",    // Fundo dos badges (notificações)
+    "activityBarBadge.foreground": "#000000",    // Texto dos badges
+
+    // 📊 Barra de status (embaixo)
+    "statusBar.background": "#065f46",           // Fundo padrão
+    "statusBar.foreground": "#ffffff",           // Texto padrão
+    "statusBar.border": "#000000",               // Borda superior
+    "statusBar.noFolderBackground": "#374151",   // Fundo quando nenhum workspace está aberto
+    "statusBar.debuggingBackground": "#b91c1c",  // Fundo quando debugando
+    "statusBar.debuggingForeground": "#ffffff",  // Texto quando debugando
+    "statusBarItem.prominentBackground": "#10b981",       // Fundo de itens destacados
+    "statusBarItem.prominentHoverBackground": "#059669",  // Fundo ao passar o mouse
+
+    // 📑 Editor (área de código)
+    "editor.background": "#0f172a",              // Fundo do editor
+    "editor.foreground": "#f1f5f9",              // Cor padrão do texto
+    "editor.lineHighlightBackground": "#1e293b", // Fundo da linha atual
+    "editor.selectionBackground": "#3b82f6",     // Fundo da seleção
+    "editorCursor.foreground": "#facc15",        // Cor do cursor
+    "editorWhitespace.foreground": "#64748b",    // Espaços em branco
+    "editorLineNumber.foreground": "#94a3b8",    // Números de linha
+    "editorIndentGuide.background": "#475569",   // Guias de indentação
+    "editorIndentGuide.activeBackground": "#f59e0b", // Guia ativa
+
+    // 🔍 Painéis inferiores (ex: Terminal, Output, Problems)
+    "panel.background": "#111827",               // Fundo dos painéis
+    "panel.border": "#1f2937",                   // Borda superior
+    "panelTitle.activeForeground": "#f97316",    // Título ativo (ex: TERMINAL)
+    "panelTitle.inactiveForeground": "#9ca3af",  // Títulos inativos
+    "panelTitle.activeBorder": "#f97316",        // Borda abaixo do título ativo
+
+    // 📂 Explorador de arquivos (Explorer)
+    "list.activeSelectionBackground": "#1d4ed8", // Fundo do item selecionado
+    "list.activeSelectionForeground": "#ffffff", // Texto selecionado
+    "list.hoverBackground": "#1e293b",           // Fundo ao passar o mouse
+    "list.inactiveSelectionBackground": "#334155", // Fundo quando sem foco
+    "list.inactiveSelectionForeground": "#e2e8f0", // Texto quando sem foco
+
+    // 🔐 Terminal integrado
+    "terminal.background": "#0f172a",            // Fundo do terminal
+    "terminal.foreground": "#e2e8f0",            // Texto padrão
+    "terminalCursor.background": "#000000",      // Fundo do cursor
+    "terminalCursor.foreground": "#facc15",      // Cursor
+    "terminal.ansiBlack": "#1f2937",             // Preto
+    "terminal.ansiRed": "#ef4444",               // Vermelho
+    "terminal.ansiGreen": "#22c55e",             // Verde
+    "terminal.ansiYellow": "#eab308",            // Amarelo
+    "terminal.ansiBlue": "#3b82f6",              // Azul
+    "terminal.ansiMagenta": "#d946ef",           // Magenta
+    "terminal.ansiCyan": "#06b6d4",              // Ciano
+    "terminal.ansiWhite": "#f8fafc"              // Branco
+  }
+}
