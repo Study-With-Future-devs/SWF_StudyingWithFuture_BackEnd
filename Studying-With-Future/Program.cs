@@ -49,6 +49,9 @@ internal class Program
                    .LogTo(Console.WriteLine, LogLevel.Information)
                    .EnableSensitiveDataLogging(builder.Environment.IsDevelopment()));
 
+        builder.Services.AddScoped<ExcelImportService>();
+        builder.Services.AddSingleton<IWebHostEnvironment>(builder.Environment);
+
         //INICIO LOGICA DE JWT
         var jwtSettings = builder.Configuration.GetSection("Jwt");
         var jwtKey = jwtSettings["Key"] ?? "SuaChaveSecretaSuperSeguraComPeloMenos32Caracteres123!";
