@@ -12,8 +12,8 @@ using Studying_With_Future.Data;
 namespace Studying_With_Future.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250917220838_AddJWTInUser")]
-    partial class AddJWTInUser
+    [Migration("20251020151007_CPF")]
+    partial class CPF
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,6 +38,21 @@ namespace Studying_With_Future.Migrations
                     b.HasIndex("TurmaId");
 
                     b.ToTable("AlunoTurma");
+                });
+
+            modelBuilder.Entity("Studying_With_Future.Models.AlunoTurma", b =>
+                {
+                    b.Property<int>("AlunoId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TurmaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("AlunoId", "TurmaId");
+
+                    b.HasIndex("TurmaId");
+
+                    b.ToTable("AlunoTurmas");
                 });
 
             modelBuilder.Entity("Studying_With_Future.Models.Atividade", b =>
@@ -188,6 +203,9 @@ namespace Studying_With_Future.Migrations
                     b.Property<bool>("Ativo")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("CPF")
+                        .HasColumnType("longtext");
+
                     b.Property<DateTime>("DataCriacao")
                         .HasColumnType("datetime(6)");
 
@@ -313,14 +331,33 @@ namespace Studying_With_Future.Migrations
                     b.HasOne("Studying_With_Future.Models.Aluno", null)
                         .WithMany()
                         .HasForeignKey("AlunoId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Studying_With_Future.Models.Turma", null)
                         .WithMany()
                         .HasForeignKey("TurmaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Studying_With_Future.Models.AlunoTurma", b =>
+                {
+                    b.HasOne("Studying_With_Future.Models.Aluno", "Aluno")
+                        .WithMany("AlunoTurmas")
+                        .HasForeignKey("AlunoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("Studying_With_Future.Models.Turma", "Turma")
+                        .WithMany("AlunoTurmas")
+                        .HasForeignKey("TurmaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Aluno");
+
+                    b.Navigation("Turma");
                 });
 
             modelBuilder.Entity("Studying_With_Future.Models.Atividade", b =>
@@ -418,6 +455,8 @@ namespace Studying_With_Future.Migrations
 
             modelBuilder.Entity("Studying_With_Future.Models.Turma", b =>
                 {
+                    b.Navigation("AlunoTurmas");
+
                     b.Navigation("Atividades");
                 });
 
@@ -428,6 +467,8 @@ namespace Studying_With_Future.Migrations
 
             modelBuilder.Entity("Studying_With_Future.Models.Aluno", b =>
                 {
+                    b.Navigation("AlunoTurmas");
+
                     b.Navigation("Notas");
                 });
 

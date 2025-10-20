@@ -24,6 +24,8 @@ namespace Studying_With_Future.Models
         [JsonIgnore] // Não serializa a senha para JSON
         public string Senha { get; set; }
 
+        [StringLength(255, ErrorMessage = "O CPF não pode exceder 12 caracteres.")]
+        public string Cpf { get; set; }
         public virtual List<UsuarioTela> UsuarioTelas { get; set; } = new List<UsuarioTela>();
 
          public string RefreshToken { get; set; }

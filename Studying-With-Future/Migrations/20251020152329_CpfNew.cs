@@ -1,39 +1,31 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Studying_With_Future.Migrations
 {
     /// <inheritdoc />
-    public partial class AddJWTInUser : Migration
+    public partial class CpfNew : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Adiciona uma nova coluna "Cpf"
             migrationBuilder.AddColumn<string>(
-                name: "RefreshToken",
+                name: "Cpf",
                 table: "Usuarios",
-                type: "longtext",
+                type: "varchar(255)",
+                maxLength: 255,
                 nullable: true)
                 .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.AddColumn<DateTime>(
-                name: "RefreshTokenExpiry",
-                table: "Usuarios",
-                type: "datetime(6)",
-                nullable: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            // Remove a coluna "Cpf" se desfizer a migração
             migrationBuilder.DropColumn(
-                name: "RefreshToken",
-                table: "Usuarios");
-
-            migrationBuilder.DropColumn(
-                name: "RefreshTokenExpiry",
+                name: "Cpf",
                 table: "Usuarios");
         }
     }

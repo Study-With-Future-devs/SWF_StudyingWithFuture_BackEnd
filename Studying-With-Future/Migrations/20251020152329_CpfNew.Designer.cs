@@ -12,8 +12,8 @@ using Studying_With_Future.Data;
 namespace Studying_With_Future.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250919162702_SyncAlunoTurma")]
-    partial class SyncAlunoTurma
+    [Migration("20251020152329_CpfNew")]
+    partial class CpfNew
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -202,6 +202,10 @@ namespace Studying_With_Future.Migrations
 
                     b.Property<bool>("Ativo")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Cpf")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.Property<DateTime>("DataCriacao")
                         .HasColumnType("datetime(6)");

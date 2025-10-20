@@ -200,6 +200,10 @@ namespace Studying_With_Future.Migrations
                     b.Property<bool>("Ativo")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("Cpf")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
                     b.Property<DateTime>("DataCriacao")
                         .HasColumnType("datetime(6)");
 

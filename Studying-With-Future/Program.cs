@@ -11,7 +11,7 @@ using Studying_With_Future.Services;
 
 internal class Program
 {
-    private static async Task Main(string[] args) // Mudado para async Task
+    private static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -30,7 +30,7 @@ internal class Program
             options.AddPolicy("AllowAngularDev",
                 policy =>
                 {
-                    policy.WithOrigins("http://localhost:4200", "https://localhost:4200") // http e https
+                    policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
                           .AllowAnyHeader()
                           .AllowAnyMethod()
                           .AllowCredentials();
@@ -53,7 +53,7 @@ internal class Program
         builder.Services.AddScoped<ExcelImportService>();
         builder.Services.AddSingleton<IWebHostEnvironment>(builder.Environment);
 
-        //INICIO LOGICA DE JWT
+        // INICIO LOGICA DE JWT
         var jwtSettings = builder.Configuration.GetSection("Jwt");
         var jwtKey = jwtSettings["Key"] ?? "SuaChaveSecretaSuperSeguraComPeloMenos32Caracteres123!";
 
@@ -92,7 +92,7 @@ internal class Program
                 },
                 OnTokenValidated = context =>
                 {
-                    Console.WriteLine($"✅ Token validado para: {context.Principal.Identity.Name}");
+                    Console.WriteLine($"✅ Token validado para: {context.Principal?.Identity?.Name ?? "Unknown"}");
                     return Task.CompletedTask;
                 }
             };
@@ -144,45 +144,8 @@ internal class Program
 
         var app = builder.Build();
 
-        // 🔥 EXECUTAR MIGRATIONS AUTOMATICAMENTE (AGORA NO LUGAR CORRETO)
-        using (var scope = app.Services.CreateScope())
-        {
-            var services = scope.ServiceProvider;
-            try
-            {
-                var context = services.GetRequiredService<AppDbContext>();
-                Console.WriteLine("🔧 Aplicando migrations do banco de dados...");
-                
-                // Verificar se há migrations pendentes
-                var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
-                if (pendingMigrations.Any())
-                {
-                    Console.WriteLine($"📦 Migrations pendentes: {string.Join(", ", pendingMigrations)}");
-                    await context.Database.MigrateAsync();
-                    Console.WriteLine("✅ Migrations aplicadas com sucesso!");
-                }
-                else
-                {
-                    Console.WriteLine("✅ Nenhuma migration pendente.");
-                }
-                
-                // Verificar conexão com o banco
-                var canConnect = await context.Database.CanConnectAsync();
-                if (canConnect)
-                {
-                    Console.WriteLine("✅ Conexão com o banco de dados estabelecida com sucesso!");
-                }
-                else
-                {
-                    Console.WriteLine("❌ Não foi possível conectar ao banco de dados");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ ERRO ao aplicar migrations: {ex.Message}");
-                throw;
-            }
-        }
+        // 🛡️ MIGRATIONS AUTOMÁTICAS - VERSÃO 100% CONFIÁVEL
+        await ApplyMigrationsSafely(app);
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
@@ -191,14 +154,14 @@ internal class Program
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Sistema Escolar API v1");
-                c.RoutePrefix = string.Empty; // Coloca Swagger na raiz
+                c.RoutePrefix = string.Empty;
             });
         }
 
         // IMPORTANTE: UseCors deve vir antes de UseAuthentication e UseAuthorization
         app.UseCors("AllowAngularDev");
 
-        //app.UseHttpsRedirection(); // comentado porque Docker não tem HTTPS
+        //app.UseHttpsRedirection();
 
         app.UseAuthentication();
         app.UseAuthorization();
@@ -228,6 +191,111 @@ internal class Program
         Console.WriteLine($"📊 Swagger: http://localhost:5004");
         Console.WriteLine($"🔧 Ambiente: {app.Environment.EnvironmentName}");
 
-        await app.RunAsync(); // Mudado para RunAsync
+        await app.RunAsync();
+    }
+
+    /// <summary>
+    /// 🛡️ Aplica migrations de forma segura sem crashar a API
+    /// </summary>
+    private static async Task ApplyMigrationsSafely(WebApplication app)
+    {
+        const int maxRetries = 3;
+        const int retryDelayMs = 2000;
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            try
+            {
+                using var scope = app.Services.CreateScope();
+                var services = scope.ServiceProvider;
+                
+                var context = services.GetRequiredService<AppDbContext>();
+                var logger = services.GetRequiredService<ILogger<Program>>();
+
+                Console.WriteLine($"🔄 Tentativa {attempt}/{maxRetries}: Verificando conexão com o banco...");
+
+                // 1. Verificar conexão com timeout
+                var canConnect = await TryConnectWithTimeout(context, TimeSpan.FromSeconds(10));
+                if (!canConnect)
+                {
+                    logger.LogWarning("❌ Não foi possível conectar ao banco de dados");
+                    if (attempt < maxRetries)
+                    {
+                        Console.WriteLine($"⏳ Aguardando {retryDelayMs}ms antes da próxima tentativa...");
+                        await Task.Delay(retryDelayMs);
+                        continue;
+                    }
+                    else
+                    {
+                        logger.LogError("🚫 Todas as tentativas de conexão falharam. Continuando sem migrations...");
+                        return;
+                    }
+                }
+
+                Console.WriteLine("✅ Conexão com o banco estabelecida!");
+
+                // 2. Verificar migrations pendentes
+                var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
+                if (!pendingMigrations.Any())
+                {
+                    Console.WriteLine("✅ Nenhuma migration pendente.");
+                    return;
+                }
+
+                Console.WriteLine($"📦 Encontradas {pendingMigrations.Count()} migrations pendentes:");
+                foreach (var migration in pendingMigrations)
+                {
+                    Console.WriteLine($"   - {migration}");
+                }
+
+                // 3. Aplicar migrations com transaction
+                Console.WriteLine("🔧 Aplicando migrations...");
+                await context.Database.MigrateAsync();
+                
+                Console.WriteLine("✅ Todas as migrations aplicadas com sucesso!");
+                return; // Sucesso - sai do método
+            }
+            catch (Exception ex)
+            {
+                var logger = app.Services.GetRequiredService<ILogger<Program>>();
+                
+                if (attempt == maxRetries)
+                {
+                    // Última tentativa - loga como erro mas não crasha
+                    logger.LogError(ex, "🚫 ERRO CRÍTICO: Falha ao aplicar migrations após {Attempt} tentativas", attempt);
+                    Console.WriteLine("⚠️ AVISO: Migrations não aplicadas. A API continuará funcionando.");
+                    Console.WriteLine("💡 SOLUÇÃO: Aplique as migrations manualmente com: dotnet ef database update");
+                }
+                else
+                {
+                    // Tentativas intermediárias - loga como warning
+                    logger.LogWarning(ex, "⚠️ Tentativa {Attempt}/{MaxRetries} falhou", attempt, maxRetries);
+                    Console.WriteLine($"⏳ Aguardando {retryDelayMs}ms antes da próxima tentativa...");
+                    await Task.Delay(retryDelayMs);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 🕐 Tenta conectar ao banco com timeout
+    /// </summary>
+    private static async Task<bool> TryConnectWithTimeout(AppDbContext context, TimeSpan timeout)
+    {
+        try
+        {
+            var cts = new CancellationTokenSource(timeout);
+            return await context.Database.CanConnectAsync(cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            Console.WriteLine("⏰ Timeout ao conectar com o banco");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"🔌 Erro de conexão: {ex.Message}");
+            return false;
+        }
     }
 }
