@@ -1,6 +1,5 @@
-using OfficeOpenXml;
+using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
 using Studying_With_Future.Data;
 using Studying_With_Future.Models;
 
@@ -15,7 +14,7 @@ namespace Studying_With_Future.Services
         {
             _context = context;
             _logger = logger;
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            // Não precisa de configuração de licença com ClosedXML
         }
 
         public async Task<ImportResult> ImportUsersFromExcel(Stream fileStream)
@@ -25,22 +24,16 @@ namespace Studying_With_Future.Services
 
             try
             {
-                using (var package = new ExcelPackage(fileStream))
+                using (var workbook = new XLWorkbook(fileStream))
                 {
-                    var worksheet = package.Workbook.Worksheets[0];
-                    var rowCount = worksheet.Dimension?.Rows ?? 0;
+                    var worksheet = workbook.Worksheet(1); // Primeira planilha
+                    var rows = worksheet.RangeUsed().RowsUsed().Skip(1); // Pular cabeçalho
 
-                    if (rowCount < 2)
-                    {
-                        result.AddError("O arquivo está vazio ou não contém dados");
-                        return result;
-                    }
-
-                    for (int row = 2; row <= rowCount; row++)
+                    foreach (var row in rows)
                     {
                         try
                         {
-                            var user = await ParseUserFromRow(worksheet, row);
+                            var user = await ParseUserFromRow(row);
                             if (user != null)
                             {
                                 usersToAdd.Add(user);
@@ -48,7 +41,7 @@ namespace Studying_With_Future.Services
                         }
                         catch (Exception ex)
                         {
-                            result.AddError($"Linha {row}: {ex.Message}");
+                            result.AddError($"Linha {row.RowNumber()}: {ex.Message}");
                         }
                     }
                 }
@@ -71,15 +64,15 @@ namespace Studying_With_Future.Services
             return result;
         }
 
-        private async Task<Usuario> ParseUserFromRow(ExcelWorksheet worksheet, int row)
+        private async Task<Usuario> ParseUserFromRow(IXLRangeRow row)
+
         {
-            var nome = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
-            var email = worksheet.Cells[row, 2].Value?.ToString()?.Trim().ToLower();
-            var cpf = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
-            var telefone = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
-            var tipoStr = worksheet.Cells[row, 5].Value?.ToString()?.Trim();
-            var matricula = worksheet.Cells[row, 6].Value?.ToString()?.Trim();
-            var curso = worksheet.Cells[row, 7].Value?.ToString()?.Trim();
+            var nome = row.Cell(1).GetValue<string>()?.Trim();
+            var email = row.Cell(2).GetValue<string>()?.Trim().ToLower();
+            var telefone = row.Cell(4).GetValue<string>()?.Trim();
+            var tipoStr = row.Cell(5).GetValue<string>()?.Trim();
+            var matricula = row.Cell(6).GetValue<string>()?.Trim();
+            var curso = row.Cell(7).GetValue<string>()?.Trim();
 
             // Validações básicas
             if (string.IsNullOrEmpty(nome) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(tipoStr))
@@ -89,14 +82,11 @@ namespace Studying_With_Future.Services
             if (await _context.Usuarios.AnyAsync(u => u.Email == email))
                 throw new Exception($"Email {email} já cadastrado");
 
-            if (!string.IsNullOrEmpty(cpf) && await _context.Usuarios.AnyAsync(u => u.CPF == cpf))
-                throw new Exception($"CPF {cpf} já cadastrado");
-
             // Criar usuário baseado no tipo
-            return await CreateUserByType(nome, email, cpf, telefone, tipoStr, matricula, curso);
+            return await CreateUserByType(nome, email, telefone, tipoStr, matricula, curso);
         }
 
-        private async Task<Usuario> CreateUserByType(string nome, string email, string cpf, string telefone, 
+        private async Task<Usuario> CreateUserByType(string nome, string email, string telefone, 
             string tipoStr, string matricula, string curso)
         {
             var tipo = MapUserType(tipoStr);

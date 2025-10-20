@@ -1,9 +1,10 @@
 SELECT 
-    p.Id,
-    p.Nome,
-    p.Formacao,
-    p.Especialidade,
-    COUNT(t.Id) as QuantidadeTurmas
-FROM Professores p
-LEFT JOIN Turmas t ON p.Id = t.ProfessorId
-GROUP BY p.Id, p.Nome, p.Formacao, p.Especialidade;
+    u.Id,
+    u.Nome,
+    u.Formacao,
+    u.Especialidade,
+    COUNT(t.Id) AS QuantidadeTurmas
+FROM Usuarios u
+LEFT JOIN Turmas t ON u.Id = t.ProfessorId
+WHERE u.TipoUsuario = 'Professor'
+GROUP BY u.Id, u.Nome, u.Formacao, u.Especialidade;

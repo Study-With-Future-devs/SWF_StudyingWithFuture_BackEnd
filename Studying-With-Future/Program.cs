@@ -7,10 +7,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text.Json;
+using Studying_With_Future.Services;
 
 internal class Program
 {
-    private static void Main(string[] args)
+    private static async Task Main(string[] args) // Mudado para async Task
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -69,7 +70,7 @@ internal class Program
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         })
         .AddJwtBearer(options =>
-        {   
+        {
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
@@ -143,6 +144,45 @@ internal class Program
 
         var app = builder.Build();
 
+        // 🔥 EXECUTAR MIGRATIONS AUTOMATICAMENTE (AGORA NO LUGAR CORRETO)
+        using (var scope = app.Services.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            try
+            {
+                var context = services.GetRequiredService<AppDbContext>();
+                Console.WriteLine("🔧 Aplicando migrations do banco de dados...");
+                
+                // Verificar se há migrations pendentes
+                var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
+                if (pendingMigrations.Any())
+                {
+                    Console.WriteLine($"📦 Migrations pendentes: {string.Join(", ", pendingMigrations)}");
+                    await context.Database.MigrateAsync();
+                    Console.WriteLine("✅ Migrations aplicadas com sucesso!");
+                }
+                else
+                {
+                    Console.WriteLine("✅ Nenhuma migration pendente.");
+                }
+                
+                // Verificar conexão com o banco
+                var canConnect = await context.Database.CanConnectAsync();
+                if (canConnect)
+                {
+                    Console.WriteLine("✅ Conexão com o banco de dados estabelecida com sucesso!");
+                }
+                else
+                {
+                    Console.WriteLine("❌ Não foi possível conectar ao banco de dados");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ ERRO ao aplicar migrations: {ex.Message}");
+                throw;
+            }
+        }
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
@@ -188,6 +228,6 @@ internal class Program
         Console.WriteLine($"📊 Swagger: http://localhost:5004");
         Console.WriteLine($"🔧 Ambiente: {app.Environment.EnvironmentName}");
 
-        app.Run();
+        await app.RunAsync(); // Mudado para RunAsync
     }
 }
