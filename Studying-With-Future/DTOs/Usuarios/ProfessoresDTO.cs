@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace Studying_With_Future.DTOs.Usuarios
-{
    using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -84,5 +78,4 @@ namespace Studying_With_Future.DTOs.Usuarios
         [StringLength(100, ErrorMessage = "Especialidade não pode exceder 100 caracteres")]
         public string Especialidade { get; set; }
     }
-}
 }

@@ -81,6 +81,6 @@ namespace Studying_With_Future.DTOs.Usuarios
         [StringLength(100, ErrorMessage = "Área de coordenação não pode exceder 100 caracteres")]
         public string AreaCoordenacao { get; set; }
 
-        public int? DisciplinaId { get; set; } // Nullable para ser opcional no update
+        public int DisciplinaId { get; set; } // Nullable para ser opcional no update
     }
 }

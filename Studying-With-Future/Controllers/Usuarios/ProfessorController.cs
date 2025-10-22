@@ -1,13 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Studying_With_Future.Data;
 using Studying_With_Future.DTOs.Usuarios;
-using Studying_With_Future.DTOs.Usuarios.Studying_With_Future.DTOs.Usuarios;
 using Studying_With_Future.Models;
+using Studying_With_Future.Utils;
 
 namespace Studying_With_Future.Controllers.Usuarios
 {
@@ -44,15 +40,10 @@ namespace Studying_With_Future.Controllers.Usuarios
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProfessorResponseDTO>> GetProfessorById(int id)
+        public async Task<ActionResult<ProfessorResponseDTO>> GetProfessorById(int? id)
         {
-            var professor = await _context.Professores
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (professor == null)
-            {
-                return NotFound();
-            }
+            var professor = await _context.Professores.FindAsync(id);
+            if (professor == null) return NotFound();
 
             var response = new ProfessorResponseDTO
             {
@@ -70,20 +61,18 @@ namespace Studying_With_Future.Controllers.Usuarios
         }
 
         [HttpPost]
-        public async Task<ActionResult<ProfessorResponseDTO>> CreateProfessor(ProfessorCreateDTO professorCreateDTO)
+        public async Task<ActionResult<ProfessorResponseDTO>> CreateProfessor(ProfessorCreateDTO dto)
         {
-            if (await _context.Professores.AnyAsync(p => p.Email == professorCreateDTO.Email))
-            {
+            if (await ValidationUtils.EmailExists(_context, dto.Email))
                 return BadRequest(new { message = "Email já cadastrado" });
-            }
 
             var professor = new Professor
             {
-                Nome = professorCreateDTO.Nome,
-                Email = professorCreateDTO.Email,
-                Senha = HashPassword(professorCreateDTO.Senha),
-                Formacao = professorCreateDTO.Formacao,
-                Especialidade = professorCreateDTO.Especialidade
+                Nome = dto.Nome,
+                Email = dto.Email,
+                Senha = PasswordUtils.HashPassword(dto.Senha),
+                Formacao = dto.Formacao,
+                Especialidade = dto.Especialidade
             };
 
             _context.Professores.Add(professor);
@@ -106,76 +95,37 @@ namespace Studying_With_Future.Controllers.Usuarios
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProfessor(int id, ProfessorUpdateDTO professorUpdateDTO)
+        public async Task<IActionResult> UpdateProfessor(int? id, ProfessorUpdateDTO dto)
         {
-            if (id != professorUpdateDTO.Id)
-            {
-                return BadRequest("ID do professor não corresponde");
-            }
+            if (id != dto.Id) return BadRequest("ID do professor não corresponde");
 
             var professor = await _context.Professores.FindAsync(id);
-            if (professor == null)
-            {
-                return NotFound();
-            }
+            if (professor == null) return NotFound();
 
-            if (await _context.Professores.AnyAsync(p => p.Email == professorUpdateDTO.Email && p.Id != id))
-            {
+            if (await ValidationUtils.EmailExists(_context, dto.Email, id))
                 return BadRequest(new { message = "Email já cadastrado para outro usuário" });
-            }
 
-            professor.Nome = professorUpdateDTO.Nome;
-            professor.Email = professorUpdateDTO.Email;
-            professor.Formacao = professorUpdateDTO.Formacao;
-            professor.Especialidade = professorUpdateDTO.Especialidade;
+            professor.Nome = dto.Nome;
+            professor.Email = dto.Email;
+            professor.Formacao = dto.Formacao;
+            professor.Especialidade = dto.Especialidade;
 
-            if (!string.IsNullOrEmpty(professorUpdateDTO.Senha))
-            {
-                professor.Senha = HashPassword(professorUpdateDTO.Senha);
-            }
+            if (!string.IsNullOrEmpty(dto.Senha))
+                professor.Senha = PasswordUtils.HashPassword(dto.Senha);
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await ProfessorExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProfessor(int id)
+        public async Task<IActionResult> DeleteProfessor(int? id)
         {
             var professor = await _context.Professores.FindAsync(id);
-            if (professor == null)
-            {
-                return NotFound();
-            }
+            if (professor == null) return NotFound();
 
             _context.Professores.Remove(professor);
             await _context.SaveChangesAsync();
-
             return NoContent();
-        }
-
-        private string HashPassword(string password)
-        {
-            return BCrypt.Net.BCrypt.HashPassword(password);
-        }
-
-        private async Task<bool> ProfessorExists(int id)
-        {
-            return await _context.Professores.AnyAsync(p => p.Id == id);
         }
     }
 }

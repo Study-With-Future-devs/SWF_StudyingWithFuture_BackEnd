@@ -14,7 +14,7 @@ namespace Studying_With_Future.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    //[Authorize]
     public class AtividadesController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -105,7 +105,7 @@ namespace Studying_With_Future.Controllers
 
         // POST: api/atividades
         [HttpPost]
-        [Authorize(Roles = "Professor,Admin,Coordenador")]
+        //[Authorize(Roles = "Professor,Admin,Coordenador")]
         public async Task<ActionResult<AtividadeResponseDTO>> CreateAtividade(AtividadeCreateDTO atividadeCreateDTO)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
@@ -159,7 +159,7 @@ namespace Studying_With_Future.Controllers
 
         // PUT: api/atividades/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "Professor,Admin,Coordenador")]
+        //[Authorize(Roles = "Professor,Admin,Coordenador")]
         public async Task<IActionResult> UpdateAtividade(int id, AtividadeUpdateDTO atividadeUpdateDTO)
         {
             if (id != atividadeUpdateDTO.Id)
@@ -210,7 +210,7 @@ namespace Studying_With_Future.Controllers
 
         // DELETE: api/atividades/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Professor,Admin,Coordenador")]
+        //[Authorize(Roles = "Professor,Admin,Coordenador")]
         public async Task<IActionResult> DeleteAtividade(int id)
         {
             var atividade = await _context.Atividades

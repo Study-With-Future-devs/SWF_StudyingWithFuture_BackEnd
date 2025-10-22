@@ -13,7 +13,7 @@ namespace Studying_With_Future.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    //[Authorize]
     public class TurmasController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -94,7 +94,7 @@ namespace Studying_With_Future.Controllers
 
         // POST: api/turmas
         [HttpPost]
-        [Authorize(Roles = "Admin,Coordenador")]
+        //[Authorize(Roles = "Admin,Coordenador")]
         public async Task<ActionResult<TurmaResponseDTO>> CreateTurma(TurmaCreateDTO dto)
         {
             if (await _context.Turmas.AnyAsync(t => t.Codigo == dto.Codigo))
@@ -138,7 +138,7 @@ namespace Studying_With_Future.Controllers
 
         // PUT: api/turmas/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin,Coordenador")]
+        //[Authorize(Roles = "Admin,Coordenador")]
         public async Task<IActionResult> UpdateTurma(int id, TurmaUpdateDTO dto)
         {
             if (id != dto.Id) return BadRequest("ID da turma não corresponde");
@@ -169,7 +169,7 @@ namespace Studying_With_Future.Controllers
 
         // DELETE: api/turmas/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteTurma(int id)
         {
             var turma = await _context.Turmas
@@ -199,7 +199,7 @@ namespace Studying_With_Future.Controllers
 
         // POST: api/turmas/5/alunos/10
         [HttpPost("{turmaId}/alunos/{alunoId}")]
-        [Authorize(Roles = "Admin,Coordenador,Professor")]
+        //[Authorize(Roles = "Admin,Coordenador,Professor")]
         public async Task<IActionResult> AdicionarAlunoTurma(int turmaId, int alunoId)
         {
             if (await _context.AlunoTurmas.AnyAsync(at => at.TurmaId == turmaId && at.AlunoId == alunoId))
@@ -219,7 +219,7 @@ namespace Studying_With_Future.Controllers
 
         // DELETE: api/turmas/5/alunos/10
         [HttpDelete("{turmaId}/alunos/{alunoId}")]
-        [Authorize(Roles = "Admin,Coordenador,Professor")]
+        //[Authorize(Roles = "Admin,Coordenador,Professor")]
         public async Task<IActionResult> RemoverAlunoTurma(int turmaId, int alunoId)
         {
             var alunoTurma = await _context.AlunoTurmas

@@ -24,7 +24,7 @@ internal class Program
                 options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
             });
 
-        // Configurar CORS primeiro
+        // Configurar CORS
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowAngularDev",
@@ -37,12 +37,11 @@ internal class Program
                 });
         });
 
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+        // Swagger
         builder.Services.AddEndpointsApiExplorer();
 
-        // Connection string (aqui já está fixada para o container)
+        // Connection string
         var connectionString = "server=db;port=3306;database=swf;user=user_swf;password=swf123";
-
         Console.WriteLine($"🔍 Tentando conectar com: {connectionString}");
 
         builder.Services.AddDbContext<AppDbContext>(options =>
@@ -53,14 +52,12 @@ internal class Program
         builder.Services.AddScoped<ExcelImportService>();
         builder.Services.AddSingleton<IWebHostEnvironment>(builder.Environment);
 
-        // INICIO LOGICA DE JWT
+        // JWT
         var jwtSettings = builder.Configuration.GetSection("Jwt");
         var jwtKey = jwtSettings["Key"] ?? "SuaChaveSecretaSuperSeguraComPeloMenos32Caracteres123!";
 
         if (jwtKey.Length < 32)
-        {
             throw new Exception("A chave JWT deve ter pelo menos 32 caracteres");
-        }
 
         var key = Encoding.UTF8.GetBytes(jwtKey);
 
@@ -98,6 +95,7 @@ internal class Program
             };
         });
 
+        // Authorization policies
         builder.Services.AddAuthorization(options =>
         {
             options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
@@ -108,6 +106,7 @@ internal class Program
             options.AddPolicy("AnyAuthenticated", policy => policy.RequireAuthenticatedUser());
         });
 
+        // Swagger configuration
         builder.Services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo
@@ -144,10 +143,7 @@ internal class Program
 
         var app = builder.Build();
 
-        // 🛡️ MIGRATIONS AUTOMÁTICAS - VERSÃO 100% CONFIÁVEL
-        await ApplyMigrationsSafely(app);
-
-        // Configure the HTTP request pipeline.
+        // Pipeline
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
@@ -158,22 +154,17 @@ internal class Program
             });
         }
 
-        // IMPORTANTE: UseCors deve vir antes de UseAuthentication e UseAuthorization
         app.UseCors("AllowAngularDev");
-
         //app.UseHttpsRedirection();
-
         app.UseAuthentication();
         app.UseAuthorization();
-
         app.MapControllers();
 
-        // Rota de health check
+        // Health check
         app.MapGet("/health", () => "✅ API está funcionando!");
 
-        // Middleware de tratamento de erros global
+        // Middleware global de erros
         app.UseExceptionHandler("/error");
-
         app.Map("/error", (HttpContext context) =>
         {
             var exception = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
@@ -184,7 +175,7 @@ internal class Program
             );
         });
 
-        // 🚀 Forçar a API a escutar na porta 5004
+        // Porta fixa
         app.Urls.Add("http://*:5004");
 
         Console.WriteLine("🚀 API Iniciando...");
@@ -192,110 +183,5 @@ internal class Program
         Console.WriteLine($"🔧 Ambiente: {app.Environment.EnvironmentName}");
 
         await app.RunAsync();
-    }
-
-    /// <summary>
-    /// 🛡️ Aplica migrations de forma segura sem crashar a API
-    /// </summary>
-    private static async Task ApplyMigrationsSafely(WebApplication app)
-    {
-        const int maxRetries = 3;
-        const int retryDelayMs = 2000;
-
-        for (int attempt = 1; attempt <= maxRetries; attempt++)
-        {
-            try
-            {
-                using var scope = app.Services.CreateScope();
-                var services = scope.ServiceProvider;
-                
-                var context = services.GetRequiredService<AppDbContext>();
-                var logger = services.GetRequiredService<ILogger<Program>>();
-
-                Console.WriteLine($"🔄 Tentativa {attempt}/{maxRetries}: Verificando conexão com o banco...");
-
-                // 1. Verificar conexão com timeout
-                var canConnect = await TryConnectWithTimeout(context, TimeSpan.FromSeconds(10));
-                if (!canConnect)
-                {
-                    logger.LogWarning("❌ Não foi possível conectar ao banco de dados");
-                    if (attempt < maxRetries)
-                    {
-                        Console.WriteLine($"⏳ Aguardando {retryDelayMs}ms antes da próxima tentativa...");
-                        await Task.Delay(retryDelayMs);
-                        continue;
-                    }
-                    else
-                    {
-                        logger.LogError("🚫 Todas as tentativas de conexão falharam. Continuando sem migrations...");
-                        return;
-                    }
-                }
-
-                Console.WriteLine("✅ Conexão com o banco estabelecida!");
-
-                // 2. Verificar migrations pendentes
-                var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
-                if (!pendingMigrations.Any())
-                {
-                    Console.WriteLine("✅ Nenhuma migration pendente.");
-                    return;
-                }
-
-                Console.WriteLine($"📦 Encontradas {pendingMigrations.Count()} migrations pendentes:");
-                foreach (var migration in pendingMigrations)
-                {
-                    Console.WriteLine($"   - {migration}");
-                }
-
-                // 3. Aplicar migrations com transaction
-                Console.WriteLine("🔧 Aplicando migrations...");
-                await context.Database.MigrateAsync();
-                
-                Console.WriteLine("✅ Todas as migrations aplicadas com sucesso!");
-                return; // Sucesso - sai do método
-            }
-            catch (Exception ex)
-            {
-                var logger = app.Services.GetRequiredService<ILogger<Program>>();
-                
-                if (attempt == maxRetries)
-                {
-                    // Última tentativa - loga como erro mas não crasha
-                    logger.LogError(ex, "🚫 ERRO CRÍTICO: Falha ao aplicar migrations após {Attempt} tentativas", attempt);
-                    Console.WriteLine("⚠️ AVISO: Migrations não aplicadas. A API continuará funcionando.");
-                    Console.WriteLine("💡 SOLUÇÃO: Aplique as migrations manualmente com: dotnet ef database update");
-                }
-                else
-                {
-                    // Tentativas intermediárias - loga como warning
-                    logger.LogWarning(ex, "⚠️ Tentativa {Attempt}/{MaxRetries} falhou", attempt, maxRetries);
-                    Console.WriteLine($"⏳ Aguardando {retryDelayMs}ms antes da próxima tentativa...");
-                    await Task.Delay(retryDelayMs);
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// 🕐 Tenta conectar ao banco com timeout
-    /// </summary>
-    private static async Task<bool> TryConnectWithTimeout(AppDbContext context, TimeSpan timeout)
-    {
-        try
-        {
-            var cts = new CancellationTokenSource(timeout);
-            return await context.Database.CanConnectAsync(cts.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            Console.WriteLine("⏰ Timeout ao conectar com o banco");
-            return false;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"🔌 Erro de conexão: {ex.Message}");
-            return false;
-        }
     }
 }

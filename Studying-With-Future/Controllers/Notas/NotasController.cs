@@ -14,7 +14,7 @@ namespace Studying_With_Future.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    //[Authorize]
     public class NotasController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -26,7 +26,7 @@ namespace Studying_With_Future.Controllers
 
         // GET: api/notas/professor/turma/5
         [HttpGet("professor/turma/{turmaId}")]
-        [Authorize(Roles = "Professor,Admin,Coordenador")]
+        //[Authorize(Roles = "Professor,Admin,Coordenador")]
         public async Task<ActionResult<IEnumerable<NotaResponseDTO>>> GetNotasPorTurma(int turmaId)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
@@ -157,7 +157,7 @@ namespace Studying_With_Future.Controllers
 
         // POST: api/notas
         [HttpPost]
-        [Authorize(Roles = "Professor,Admin")]
+        //[Authorize(Roles = "Professor,Admin")]
         public async Task<ActionResult<NotaResponseDTO>> LancarNota(LancarNotaDTO lancarNotaDTO)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
@@ -250,7 +250,7 @@ namespace Studying_With_Future.Controllers
 
         // PUT: api/notas
         [HttpPut]
-        [Authorize(Roles = "Professor,Admin")]
+        //[Authorize(Roles = "Professor,Admin")]
         public async Task<IActionResult> UpdateNota(UpdateNotaDTO updateNotaDTO)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
@@ -291,7 +291,7 @@ namespace Studying_With_Future.Controllers
 
         // DELETE: api/notas/aluno/5/atividade/10
         [HttpDelete("aluno/{alunoId}/atividade/{atividadeId}")]
-        [Authorize(Roles = "Professor,Admin")]
+        //[Authorize(Roles = "Professor,Admin")]
         public async Task<IActionResult> DeleteNota(int alunoId, int atividadeId)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);

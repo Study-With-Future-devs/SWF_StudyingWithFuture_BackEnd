@@ -64,7 +64,7 @@ namespace Studying_With_Future.Controllers
 
         // POST: api/disciplinas
         [HttpPost]
-        [Authorize(Roles = "Admin,Coordenador")] // Só admins e coordenadores podem criar
+        //[Authorize(Roles = "Admin,Coordenador")] // Só admins e coordenadores podem criar
         public async Task<ActionResult<DisciplinaResponseDTO>> CreateDisciplina(DisciplinaCreateDTO disciplinaCreateDTO)
         {
             // Validar se já existe disciplina com mesmo nome
@@ -95,7 +95,7 @@ namespace Studying_With_Future.Controllers
 
         // PUT: api/disciplinas/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin,Coordenador")] // Só admins e coordenadores podem editar
+        //[Authorize(Roles = "Admin,Coordenador")] // Só admins e coordenadores podem editar
         public async Task<IActionResult> UpdateDisciplina(int id, DisciplinaUpdateDTO disciplinaUpdateDTO)
         {
             if (id != disciplinaUpdateDTO.Id)
@@ -139,7 +139,7 @@ namespace Studying_With_Future.Controllers
 
         // DELETE: api/disciplinas/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")] // Só admin pode deletar
+        //[Authorize(Roles = "Admin")] // Só admin pode deletar
         public async Task<IActionResult> DeleteDisciplina(int id)
         {
             var disciplina = await _context.Disciplinas

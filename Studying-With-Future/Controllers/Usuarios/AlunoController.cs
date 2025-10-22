@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Studying_With_Future.Data;
 using Studying_With_Future.DTOs.Usuarios;
 using Studying_With_Future.Models;
+using Studying_With_Future.Utils;
 
 namespace Studying_With_Future.Controllers.Usuarios
 {
@@ -44,15 +41,10 @@ namespace Studying_With_Future.Controllers.Usuarios
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<AlunoResponseDTO>> GetAlunoById(int id)
+        public async Task<ActionResult<AlunoResponseDTO>> GetAlunoById(int? id)
         {
-            var aluno = await _context.Alunos
-                .FirstOrDefaultAsync(a => a.Id == id);
-
-            if (aluno == null)
-            {
-                return NotFound();
-            }
+            var aluno = await _context.Alunos.FindAsync(id);
+            if (aluno == null) return NotFound();
 
             var response = new AlunoResponseDTO
             {
@@ -73,21 +65,17 @@ namespace Studying_With_Future.Controllers.Usuarios
         [HttpPost]
         public async Task<ActionResult<AlunoResponseDTO>> CreateAluno(AlunoCreateDTO alunoCreateDTO)
         {
-            if (await _context.Alunos.AnyAsync(a => a.Email == alunoCreateDTO.Email))
-            {
+            if (await ValidationUtils.EmailExists(_context, alunoCreateDTO.Email))
                 return BadRequest(new { message = "Email já cadastrado" });
-            }
 
-            if (await _context.Alunos.AnyAsync(a => a.Matricula == alunoCreateDTO.Matricula))
-            {
+            if (await ValidationUtils.MatriculaExists(_context, alunoCreateDTO.Matricula))
                 return BadRequest(new { message = "Matrícula já cadastrada" });
-            }
 
             var aluno = new Aluno
             {
                 Nome = alunoCreateDTO.Nome,
                 Email = alunoCreateDTO.Email,
-                Senha = HashPassword(alunoCreateDTO.Senha),
+                Senha = PasswordUtils.HashPassword(alunoCreateDTO.Senha),
                 Matricula = alunoCreateDTO.Matricula,
                 Periodo = alunoCreateDTO.Periodo,
                 DataNascimento = alunoCreateDTO.DataNascimento
@@ -114,89 +102,43 @@ namespace Studying_With_Future.Controllers.Usuarios
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAluno(int id, AlunoUpdateDTO alunoUpdateDTO)
+        public async Task<IActionResult> UpdateAluno(int? id, AlunoUpdateDTO alunoUpdateDTO)
         {
-            if (id != alunoUpdateDTO.Id)
-            {
-                return BadRequest("ID do aluno não corresponde");
-            }
+            if (id != alunoUpdateDTO.Id) return BadRequest("ID do aluno não corresponde");
 
             var aluno = await _context.Alunos.FindAsync(id);
-            if (aluno == null)
-            {
-                return NotFound();
-            }
+            if (aluno == null) return NotFound();
 
-            if (await _context.Alunos.AnyAsync(a => a.Email == alunoUpdateDTO.Email && a.Id != id))
-            {
+            if (await ValidationUtils.EmailExists(_context, alunoUpdateDTO.Email, id))
                 return BadRequest(new { message = "Email já cadastrado para outro usuário" });
-            }
 
             if (!string.IsNullOrEmpty(alunoUpdateDTO.Matricula) && 
-                await _context.Alunos.AnyAsync(a => a.Matricula == alunoUpdateDTO.Matricula && a.Id != id))
-            {
+                await ValidationUtils.MatriculaExists(_context, alunoUpdateDTO.Matricula, id))
                 return BadRequest(new { message = "Matrícula já cadastrada para outro aluno" });
-            }
 
             aluno.Nome = alunoUpdateDTO.Nome;
             aluno.Email = alunoUpdateDTO.Email;
-            
-            if (!string.IsNullOrEmpty(alunoUpdateDTO.Matricula))
-                aluno.Matricula = alunoUpdateDTO.Matricula;
-            
-            if (!string.IsNullOrEmpty(alunoUpdateDTO.Periodo))
-                aluno.Periodo = alunoUpdateDTO.Periodo;
-            
+            aluno.Matricula = alunoUpdateDTO.Matricula ?? aluno.Matricula;
+            aluno.Periodo = alunoUpdateDTO.Periodo ?? aluno.Periodo;
             if (alunoUpdateDTO.DataNascimento.HasValue)
                 aluno.DataNascimento = alunoUpdateDTO.DataNascimento.Value;
 
             if (!string.IsNullOrEmpty(alunoUpdateDTO.Senha))
-            {
-                aluno.Senha = HashPassword(alunoUpdateDTO.Senha);
-            }
+                aluno.Senha = PasswordUtils.HashPassword(alunoUpdateDTO.Senha);
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await AlunoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAluno(int id)
+        public async Task<IActionResult> DeleteAluno(int? id)
         {
             var aluno = await _context.Alunos.FindAsync(id);
-            if (aluno == null)
-            {
-                return NotFound();
-            }
+            if (aluno == null) return NotFound();
 
             _context.Alunos.Remove(aluno);
             await _context.SaveChangesAsync();
-
             return NoContent();
-        }
-
-        private string HashPassword(string password)
-        {
-            return BCrypt.Net.BCrypt.HashPassword(password);
-        }
-
-        private async Task<bool> AlunoExists(int id)
-        {
-            return await _context.Alunos.AnyAsync(a => a.Id == id);
         }
     }
 }
