@@ -182,7 +182,7 @@ namespace Studying_With_Future.Services
     public class ImportResult
     {
         public bool Success { get; set; }
-        public int? ImportedCount { get; set; }
+        public int ImportedCount { get; set; }
         public List<string> Errors { get; set; } = new List<string>();
         
         public void AddError(string error) => Errors.Add(error);
