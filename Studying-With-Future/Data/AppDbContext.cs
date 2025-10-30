@@ -23,6 +23,7 @@ namespace Studying_With_Future.Data
         public DbSet<Nota> Notas { get; set; }
 
         public DbSet<AlunoTurma> AlunoTurmas { get; set; }
+        public DbSet<Frequencia> frequencia { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -158,6 +159,20 @@ namespace Studying_With_Future.Data
                 .HasOne(at => at.Turma)
                 .WithMany(t => t.AlunoTurmas)
                 .HasForeignKey(at => at.TurmaId);
+
+            modelBuilder.Entity<Frequencia>(entity =>
+            {
+                entity.HasOne(f => f.Aluno)
+                      .WithMany()
+                      .HasForeignKey(f => f.AlunoId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(f => f.Turma)
+                      .WithMany()
+                      .HasForeignKey(f => f.TurmaId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
         }
+        
     }
 }

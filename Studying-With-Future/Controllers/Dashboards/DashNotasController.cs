@@ -13,7 +13,7 @@ namespace Studying_With_Future.Controllers
     {
         private readonly AppDbContext _context;
 
-        public DashboardNotasController(AppDbContext context)
+        public DashNotasController(AppDbContext context)
         {
             _context = context;
         }
