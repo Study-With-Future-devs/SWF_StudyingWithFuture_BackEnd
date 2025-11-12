@@ -104,7 +104,7 @@ namespace Studying_With_Future.Controllers.Usuarios
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateAluno(int? id, AlunoUpdateDTO alunoUpdateDTO)
         {
-            if (id != alunoUpdateDTO.Id) return BadRequest("ID do aluno não corresponde");
+
 
             var aluno = await _context.Alunos.FindAsync(id);
             if (aluno == null) return NotFound();

@@ -61,8 +61,9 @@ namespace Studying_With_Future.DTOs.Usuarios
 
     public class AlunoUpdateDTO
     {
-        [Required(ErrorMessage = "ID é obrigatório")]
-        public int Id { get; set; }
+        //// REMOVIDO
+        //// [Required(ErrorMessage = "ID é obrigatório")]
+        //// public int Id { get; set; }
 
         [Required(ErrorMessage = "Nome é obrigatório")]
         [StringLength(100, ErrorMessage = "Nome não pode exceder 100 caracteres")]
